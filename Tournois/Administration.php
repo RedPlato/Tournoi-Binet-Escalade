@@ -236,7 +236,7 @@ if ($result->fetchObject()->Administrateur > 0) {
 										}
 										echo '</ul>';
 									} else {
-										echo '<p>Le fichier envoyer ne contient pas toutes les colonnes attendues.</p>';
+										echo '<p>Le fichier envoyé ne contient pas toutes les colonnes attendues.</p>';
 									}
 								} else {
 									echo '<p>Vous n’avez pas chargé de fichier.</p>';
