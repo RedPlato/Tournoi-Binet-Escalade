@@ -1,5 +1,7 @@
 <?php
 
+#test
+
 require('Inclus/Haut.inc.php');
 session_write_close();
 require('autoload.php');
