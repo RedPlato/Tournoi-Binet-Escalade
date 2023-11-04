@@ -197,10 +197,14 @@ if ($result->fetchObject()->Administrateur > 0) {
 										$query = "SELECT `Id`, `Nom`, `Prénom`, (SELECT COUNT(*) FROM `Tournois_Utilisateurs` WHERE `Utilisateur` = `Id` AND `Tournoi` = :Tournoi) AS `Membre` FROM `Utilisateurs` WHERE (`Adresse_électronique` = :Adresse AND `Adresse_électronique` IS NOT NULL) OR (`Identifiant` = :Identifiant AND `Identifiant` IS NOT NULL)";
 										$result = $dbh->prepare($query);
 										foreach ($Données as $i => $Ligne) {
+											// On parcourt les lignes du fichier donc les utilisateurs à ajouter
+
 											$Ligne = traiter_inputs($Ligne);
 											if ($Ligne[$Entêtes['Nom']] != null and $Ligne[$Entêtes['Prénom']] != null and $Ligne[$Entêtes['Genre']] != null and $Ligne[$Entêtes['Type']] != null) {
 												$result->execute(['Adresse' => $Ligne[$Entêtes['Adresse électronique']], 'Identifiant' => $Ligne[$Entêtes['Identifiant']], 'Tournoi' => $Tournoi->Id]);
 												if ($result->rowCount() == 0) {
+													// Si l’utilisateur n’existe pas, on le crée
+
 													$query = "INSERT INTO `Utilisateurs`(`Nom`, `Prénom`, `Genre`, `Adresse_électronique`, `Identifiant`, `Mot_de_passe`) VALUES (:Nom, :Prenom, :Genre, :Adresse, :Identifiant, :MotDePasse)";
 													$result1 = $dbh->prepare($query);
 													if ($result1->execute(['Nom' => $Ligne[$Entêtes['Nom']], 'Prenom' => $Ligne[$Entêtes['Prénom']], 'Genre' => $Ligne[$Entêtes['Genre']], 'Adresse' => $Ligne[$Entêtes['Adresse électronique']] != '' ? $Ligne[$Entêtes['Adresse électronique']] : null, 'Identifiant' => $Ligne[$Entêtes['Identifiant']] != '' ? $Ligne[$Entêtes['Identifiant']] : null, 'MotDePasse' => $Ligne[$Entêtes['Mot de passe']] != '' ? password_hash($Ligne[$Entêtes['Mot de passe']], PASSWORD_DEFAULT) : null])) {
@@ -217,6 +221,8 @@ if ($result->fetchObject()->Administrateur > 0) {
 														echo '<li>Impossible de créer l’utilisateur '.$Ligne[$Entêtes['Prénom']].' '.$Ligne[$Entêtes['Nom']].'.</li>';
 													}
 												} else {
+													// Si l’utilisateur existe, on vérifie qu’il n’est pas déjà dans le tournoi
+
 													$Utilisateur = $result->fetchObject();
 													if ($Utilisateur->Membre == 0) {
 														$query = "INSERT INTO `Tournois_Utilisateurs`(`Tournoi`, `Utilisateur`, `Type`, `Dossard`, `Equipe`) VALUES (:Tournoi, :Utilisateur, :Type, :Dossard, :Equipe)";
