@@ -213,10 +213,10 @@ if ($result->fetchObject()->Administrateur > 0) {
 													$result1 = $dbh->prepare($query);
 													if ($result1->execute(['Nom' => $Ligne[$Entêtes['Nom']], 'Prenom' => $Ligne[$Entêtes['Prénom']], 'Genre' => $Ligne[$Entêtes['Genre']], 'Adresse' => $Ligne[$Entêtes['Adresse électronique']] != '' ? $Ligne[$Entêtes['Adresse électronique']] : null, 'Identifiant' => $Ligne[$Entêtes['Identifiant']] != '' ? $Ligne[$Entêtes['Identifiant']] : null, 'MotDePasse' => $Ligne[$Entêtes['Mot de passe']] != '' ? password_hash($Ligne[$Entêtes['Mot de passe']], PASSWORD_DEFAULT) : null])) {
 														$Id = $dbh->lastInsertId();
-														$query = "INSERT INTO `Tournois_Utilisateurs`(`Tournoi`, `Utilisateur`, `Type`, `Dossard`, `Catégorie`, `Equipe`) VALUES (:Tournoi, :Utilisateur, :Type, :Dossard, :Catégorie, :Equipe)";
+														$query = "INSERT INTO `Tournois_Utilisateurs`(`Tournoi`, `Utilisateur`, `Type`, `Dossard`, `Catégorie`, `Equipe`) VALUES (:Tournoi, :Utilisateur, :Type, :Dossard, :Categorie, :Equipe)";
 														$result2 = $dbh->prepare($query);
 														$Utilisateur = getUserFromId($Id);
-														if ($result2->execute(['Tournoi' => $Tournoi->Id, 'Utilisateur' => $Id, 'Type' => $Ligne[$Entêtes['Type']], 'Dossard' => $Ligne[$Entêtes['Dossard']] != '' ? $Ligne[$Entêtes['Dossard']] : null, 'Catégorie' => $Ligne[$Entêtes['Catégorie']] != '' ? $Ligne[$Entêtes['Catégorie']] : null, 'Equipe' => $Ligne[$Entêtes['Equipe']] != '' ? $Ligne[$Entêtes['Equipe']] : null])) {
+														if ($result2->execute(['Tournoi' => $Tournoi->Id, 'Utilisateur' => $Id, 'Type' => $Ligne[$Entêtes['Type']], 'Dossard' => $Ligne[$Entêtes['Dossard']] != '' ? $Ligne[$Entêtes['Dossard']] : null, 'Categorie' => $Ligne[$Entêtes['Catégorie']] != '' ? $Ligne[$Entêtes['Catégorie']] : null, 'Equipe' => $Ligne[$Entêtes['Equipe']] != '' ? $Ligne[$Entêtes['Equipe']] : null])) {
 															echo '<li>'.$Utilisateur->Prénom.' '.$Utilisateur->Nom.' a bien été ajouté à la liste des utilisateurs de votre tournoi.</li>';
 														} else {
 															echo '<li>'.$Utilisateur->Prénom.' '.$Utilisateur->Nom.' a bien été créé, mais n’a pu être ajouté à votre tournoi.</li>';
@@ -229,9 +229,9 @@ if ($result->fetchObject()->Administrateur > 0) {
 
 													$Utilisateur = $result->fetchObject();
 													if ($Utilisateur->Membre == 0) {
-														$query = "INSERT INTO `Tournois_Utilisateurs`(`Tournoi`, `Utilisateur`, `Type`, `Dossard`, `Catégorie`, `Equipe`) VALUES (:Tournoi, :Utilisateur, :Type, :Dossard, :Catégorie :Equipe)";
+														$query = "INSERT INTO `Tournois_Utilisateurs`(`Tournoi`, `Utilisateur`, `Type`, `Dossard`, `Catégorie`, `Equipe`) VALUES (:Tournoi, :Utilisateur, :Type, :Dossard, :Categorie :Equipe)";
 														$result2 = $dbh->prepare($query);
-														if ($result2->execute(['Tournoi' => $Tournoi->Id, 'Utilisateur' => $Utilisateur->Id, 'Type' => $Ligne[$Entêtes['Type']], 'Dossard' => $Ligne[$Entêtes['Dossard']] != '' ? $Ligne[$Entêtes['Dossard']] : null, 'Catégorie' => $Ligne[$Entêtes['Catégorie']] != '' ? $Ligne[$Entêtes['Catégorie']] : null, 'Equipe' => $Ligne[$Entêtes['Equipe']] != '' ? $Ligne[$Entêtes['Equipe']] : null])) {
+														if ($result2->execute(['Tournoi' => $Tournoi->Id, 'Utilisateur' => $Utilisateur->Id, 'Type' => $Ligne[$Entêtes['Type']], 'Dossard' => $Ligne[$Entêtes['Dossard']] != '' ? $Ligne[$Entêtes['Dossard']] : null, 'Categorie' => $Ligne[$Entêtes['Catégorie']] != '' ? $Ligne[$Entêtes['Catégorie']] : null, 'Equipe' => $Ligne[$Entêtes['Equipe']] != '' ? $Ligne[$Entêtes['Equipe']] : null])) {
 															echo '<li>'.$Utilisateur->Prénom.' '.$Utilisateur->Nom.' existe déjà, ligne n°'.($i+2).', et il a bien été ajouté à la liste des utilisateurs de votre tournoi.</li>';
 														} else {
 															echo '<li>'.$Utilisateur->Prénom.' '.$Utilisateur->Nom.' existe déjà, ligne n°'.($i+2).', mais n’a pu être ajouté à votre tournoi.</li>';
@@ -261,10 +261,10 @@ if ($result->fetchObject()->Administrateur > 0) {
 										$result = $dbh->prepare($query);
 										if ($result->execute(['Nom' => $_REQUEST['Nom'], 'Prenom' => $_REQUEST['Prénom'], 'Genre' => $_REQUEST['Genre'], 'Adresse' => $_REQUEST['Adresse_électronique'] != '' ? $_REQUEST['Adresse_électronique'] : null, 'Identifiant' => $_REQUEST['Identifiant'] != '' ? $_REQUEST['Identifiant'] : null, 'MotDePasse' => $_REQUEST['Mot_de_passe'] != '' ? password_hash($_REQUEST['Mot_de_passe'], PASSWORD_DEFAULT) : null])) {
 											$Id = $dbh->lastInsertId();
-											$query = "INSERT INTO `Tournois_Utilisateurs`(`Tournoi`, `Utilisateur`, `Type`, `Dossard`, `Catégorie`, `Equipe`) VALUES (:Tournoi, :Utilisateur, :Type, :Dossard, :Catégorie, :Equipe)";
+											$query = "INSERT INTO `Tournois_Utilisateurs`(`Tournoi`, `Utilisateur`, `Type`, `Dossard`, `Catégorie`, `Equipe`) VALUES (:Tournoi, :Utilisateur, :Type, :Dossard, :Categorie, :Equipe)";
 											$result = $dbh->prepare($query);
 											$Utilisateur = getUserFromId($Id);
-											if ($result->execute(['Tournoi' => $Tournoi->Id, 'Utilisateur' => $Id, 'Type' => $_REQUEST['Type'], 'Dossard' => $_REQUEST['Dossard'] != '' ? $_REQUEST['Dossard'] : null, 'Catégorie' => $_REQUEST['Catégorie'] != '' ? $_REQUEST['Catégorie'] : null, 'Equipe' => $_REQUEST['Equipe'] != '' ? $_REQUEST['Equipe'] : null])) {
+											if ($result->execute(['Tournoi' => $Tournoi->Id, 'Utilisateur' => $Id, 'Type' => $_REQUEST['Type'], 'Dossard' => $_REQUEST['Dossard'] != '' ? $_REQUEST['Dossard'] : null, 'Categorie' => $_REQUEST['Catégorie'] != '' ? $_REQUEST['Catégorie'] : null, 'Equipe' => $_REQUEST['Equipe'] != '' ? $_REQUEST['Equipe'] : null])) {
 												echo '<p>'.$Utilisateur->Prénom.' '.$Utilisateur->Nom.' a bien été ajouté à la liste des utilisateurs de votre tournoi.</p>';
 											} else {
 												echo '<p>'.$Utilisateur->Prénom.' '.$Utilisateur->Nom.' a bien été créé, mais n’a pu être ajouté à votre tournoi.</p>';
@@ -290,9 +290,9 @@ if ($result->fetchObject()->Administrateur > 0) {
 										$query = "UPDATE `Utilisateurs` SET `Nom`=:Nom,`Prénom`=:Prenom,`Genre`=:Genre,`Adresse_électronique`=:Adresse,`Identifiant`=:Identifiant,`Mot_de_passe`=:MotDePasse WHERE `Id` = :Id";
 										$result = $dbh->prepare($query);
 										if ($result->execute(['Nom' => $_REQUEST['Nom'], 'Prenom' => $_REQUEST['Prénom'], 'Genre' => $_REQUEST['Genre'], 'Adresse' => $_REQUEST['Adresse_électronique'] != '' ? $_REQUEST['Adresse_électronique'] : null, 'Identifiant' => $_REQUEST['Identifiant'] != '' ? $_REQUEST['Identifiant'] : null, 'MotDePasse' => $_REQUEST['Mot_de_passe'] != '' ? password_hash($_REQUEST['Mot_de_passe'], PASSWORD_DEFAULT) : null, 'Id' => $Utilisateur->Id])) {
-											$query = "UPDATE `Tournois_Utilisateurs` SET `Type`=:Type, `Dossard`=:Dossard, `Catégorie`=:Catégorie, `Equipe`=:Equipe WHERE `Tournoi`=:Tournoi AND `Utilisateur`=:Utilisateur";
+											$query = "UPDATE `Tournois_Utilisateurs` SET `Type`=:Type, `Dossard`=:Dossard, `Catégorie`=:Categorie, `Equipe`=:Equipe WHERE `Tournoi`=:Tournoi AND `Utilisateur`=:Utilisateur";
 											$result = $dbh->prepare($query);
-											if ($result->execute(['Tournoi' => $Tournoi->Id, 'Utilisateur' => $Utilisateur->Id, 'Type' => $_REQUEST['Type'], 'Dossard' => $_REQUEST['Dossard'] != '' ? $_REQUEST['Dossard'] : null, 'Catégorie' => $_REQUEST['Catégorie'] != '' ? $_REQUEST['Catégorie'] : null, 'Equipe' => $_REQUEST['Equipe'] != '' ? $_REQUEST['Equipe'] : null])) {
+											if ($result->execute(['Tournoi' => $Tournoi->Id, 'Utilisateur' => $Utilisateur->Id, 'Type' => $_REQUEST['Type'], 'Dossard' => $_REQUEST['Dossard'] != '' ? $_REQUEST['Dossard'] : null, 'Categorie' => $_REQUEST['Catégorie'] != '' ? $_REQUEST['Catégorie'] : null, 'Equipe' => $_REQUEST['Equipe'] != '' ? $_REQUEST['Equipe'] : null])) {
 												echo '<p>Les informations de '.$Utilisateur->Prénom.' '.$Utilisateur->Nom.' ont bien été mises à jour.</p>';
 											} else {
 												echo '<p>Les informations de '.$Utilisateur->Prénom.' '.$Utilisateur->Nom.' ont bien été mises à jour, mais pas son equipe ni ses droits.</p>';
@@ -304,9 +304,9 @@ if ($result->fetchObject()->Administrateur > 0) {
 										$query = "UPDATE `Utilisateurs` SET `Nom`=:Nom,`Prénom`=:Prenom,`Genre`=:Genre,`Adresse_électronique`=:Adresse,`Identifiant`=:Identifiant WHERE `Id` = :Id";
 										$result = $dbh->prepare($query);
 										if ($result->execute(['Nom' => $_REQUEST['Nom'], 'Prenom' => $_REQUEST['Prénom'], 'Genre' => $_REQUEST['Genre'], 'Adresse' => $_REQUEST['Adresse_électronique'] != '' ? $_REQUEST['Adresse_électronique'] : null, 'Identifiant' => $_REQUEST['Identifiant'] != '' ? $_REQUEST['Identifiant'] : null, 'Id' => $Utilisateur->Id])) {
-											$query = "UPDATE `Tournois_Utilisateurs` SET `Type`=:Type, `Dossard`=:Dossard, `Catégorie`=:Catégorie, `Equipe`=:Equipe WHERE `Tournoi`=:Tournoi AND `Utilisateur`=:Utilisateur";
+											$query = "UPDATE `Tournois_Utilisateurs` SET `Type`=:Type, `Dossard`=:Dossard, `Catégorie`=:Categorie, `Equipe`=:Equipe WHERE `Tournoi`=:Tournoi AND `Utilisateur`=:Utilisateur";
 											$result = $dbh->prepare($query);
-											if ($result->execute(['Tournoi' => $Tournoi->Id, 'Utilisateur' => $Utilisateur->Id, 'Type' => $_REQUEST['Type'], 'Dossard' => $_REQUEST['Dossard'] != '' ? $_REQUEST['Dossard'] : null, 'Catégorie' => $_REQUEST['Catégorie'] != '' ? $_REQUEST['Catégorie'] : null, 'Equipe' => $_REQUEST['Equipe'] != '' ? $_REQUEST['Equipe'] : null])) {
+											if ($result->execute(['Tournoi' => $Tournoi->Id, 'Utilisateur' => $Utilisateur->Id, 'Type' => $_REQUEST['Type'], 'Dossard' => $_REQUEST['Dossard'] != '' ? $_REQUEST['Dossard'] : null, 'Categorie' => $_REQUEST['Catégorie'] != '' ? $_REQUEST['Catégorie'] : null, 'Equipe' => $_REQUEST['Equipe'] != '' ? $_REQUEST['Equipe'] : null])) {
 												echo '<p>Les informations de '.$Utilisateur->Prénom.' '.$Utilisateur->Nom.' ont bien été mises à jour.</p>';
 											} else {
 												echo '<p>Les informations de '.$Utilisateur->Prénom.' '.$Utilisateur->Nom.' ont bien été mises à jour, mais pas son equipe ni ses droits.</p>';
