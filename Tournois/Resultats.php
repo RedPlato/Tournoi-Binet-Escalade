@@ -2897,7 +2897,7 @@ switch($Tournoi->Id) {
 
 					// mettre les données dans les bons tableaux
 					while ($e = $result->fetchObject()) {				
-						echo $e->Utilisateur;
+						echo $e->Nom;
 						$u = $e->Utilisateur;
 						$v = $e->Voie;
 						$nomGrimpeur[$u] = $e->Prénom." ".$e->Nom;
