@@ -2894,6 +2894,7 @@ switch($Tournoi->Id) {
 					// récupérer les infos depuis la DB pour les essais en bloc
 					$query = "SELECT * FROM `Essais` JOIN `Tournois_Voies` ON `Essais`.`Tournoi` = 10 AND `Tournois_Voies`.`Voie` = `Essais`.`Voie` AND `Tournois_Voies`.`Type` = 'Bloc' JOIN `Voies` ON `Voies`.`Id` = `Essais`.`Voie` JOIN `Tournois_Utilisateurs` ON `Tournois_Utilisateurs`.`Utilisateur` = `Essais`.`Utilisateur` AND `Tournois_Utilisateurs`.`Tournoi` = 10 AND `Tournois_Utilisateurs`.`Type` = 'Grimpeur' JOIN `Utilisateurs` ON `Utilisateurs`.`Id` = `Essais`.`Utilisateur`";
 					$result = $dbh->query($query);
+					echo $result;
 					// mettre les données dans les bons tableaux
 					while ($e = $result->fetchObject()) {
 						$u = $e->Utilisateur;
