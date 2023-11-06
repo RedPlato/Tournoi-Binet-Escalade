@@ -2773,6 +2773,365 @@ switch($Tournoi->Id) {
 
 		echo '</div>';*/
 		break;
+
+		case 10:
+			// ================================================================================
+			// === NOM DES COMPETITEURS ET SCORE ==============================================
+			// ================================================================================
+			
+					$nomGrimpeur = array();
+					$armeGrimpeur = array();
+			
+					$scoreD = array(
+						"Qualification" => array(),
+					);
+					$scoreB = array(
+						"Qualifications" => array(),
+					);
+			
+					$MAX_PRISES = 1000;
+			
+			// ================================================================================
+			// === DIFFICULTÉ =================================================================
+			// ================================================================================
+			
+					// fonction pour calculer le score d'un grimpeur
+					function quantifierScoreD($e) {
+						global $MAX_PRISES;
+						$v = 5;
+						if ($e["cotation"] == "6a") $v = 0;
+						else if ($e["cotation"] == "6b") $v = 1;
+						else if ($e["cotation"] == "6c") $v = 2;
+						else if ($e["cotation"] == "7a") $v = 3;
+						else if ($e["cotation"] == "7b") $v = 4;
+						$p = $e["prise"];
+						$p = is_null($p)? $MAX_PRISES - 1 : intval(10 * floatval($p));
+						$t = $e["temps"];
+						$h = $i = $s = $u = 0;
+						if (!is_null($t)) {
+							$h = intval(substr($t, 0, 2));
+							$i = 59 - intval(substr($t, 3, 2));
+							$s = 59 - intval(substr($t, 6, 2));
+							$u = 999 - intval(substr($t, 9, 3));
+						}
+						$x = ((($v * $MAX_PRISES + $p) * 60 + $i) * 60 + $s) * 1000 + $u;
+						return $x;
+					}
+			
+					// récupérer les infos depuis la DB pour les essais en difficulté
+					$query = "SELECT * FROM `Essais` JOIN `Tournois_Voies` ON `Essais`.`Tournoi` = 8 AND `Tournois_Voies`.`Voie` = `Essais`.`Voie` AND `Tournois_Voies`.`Type` = 'Difficulté' JOIN `Voies` ON `Voies`.`Id` = `Essais`.`Voie` JOIN `Tournois_Utilisateurs` ON `Tournois_Utilisateurs`.`Utilisateur` = `Essais`.`Utilisateur` AND `Tournois_Utilisateurs`.`Tournoi` = 8 AND `Tournois_Utilisateurs`.`Type` = 'Grimpeur' JOIN `Utilisateurs` ON `Utilisateurs`.`Id` = `Essais`.`Utilisateur` ORDER BY `Voies`.`Cotation` ";
+					$result = $dbh->query($query);
+					// mettre les données dans les bons tableaux
+					while ($e = $result->fetchObject()) {
+						$u = $e->Utilisateur;
+						$nomGrimpeur[$u] = $e->Prénom." ".$e->Nom;
+						$armeGrimpeur[$u] = $e->Equipe;
+						$classements = array($e->Phase);
+						foreach ($classements as $classement) if (array_key_exists($classement, $scoreD)) {
+							$valide = false;
+							$p = $scoreD[$classement][$u];
+							if (is_null($e->Cotation) || is_null($e->Réussite) || $e->Cotation == "6a")
+								$valide = true;
+							if ($e->Cotation == "6b" && !is_null($p) && $p["cotation"] == "6a" && is_null($p["prise"])) $valide = true;
+							if ($e->Cotation == "6c" && !is_null($p) && $p["cotation"] == "6b" && is_null($p["prise"])) $valide = true;
+							if ($e->Cotation == "7a" && !is_null($p) && $p["cotation"] == "6c" && is_null($p["prise"])) $valide = true;
+							if ($e->Cotation == "7b" && !is_null($p) && $p["cotation"] == "7a" && is_null($p["prise"])) $valide = true;
+							if ($valide) {
+								$scoreD[$classement][$u] = array(
+									"cotation" => $e->Cotation,
+									"prise" => $e->Réussite,
+									"temps" => $e->Chrono
+								);
+							}
+						}
+					}
+					// calculer les scores à partir des essais
+					foreach ($scoreD as $classement => &$s) {
+						$s = array_map('quantifierScoreD', $s);
+					}
+			
+			// ================================================================================
+			// === BLOC =======================================================================
+			// ================================================================================
+			
+					// hashmap contenant le nombre de grimpeurs qui ont réussi une zone / bloc
+					$zone = array(
+						"Qualification - Seniors femmes" => array(),
+						"Qualification - Seniors hommes" => array(),
+						"Qualification - Vétérans hommes" => array(),
+						"Qualification - Homme" => array(),
+						"Finale - Seniors femmes" => array(),
+						"Finale - Seniors hommes" => array(),
+						"Finale - Vétérans hommes" => array(),
+						"Finale - Homme" => array()
+					);
+					$top = array(
+						"Qualification - Seniors femmes" => array(),
+						"Qualification - Seniors hommes" => array(),
+						"Qualification - Vétérans hommes" => array(),
+						"Qualification - Homme" => array(),
+						"Finale - Seniors femmes" => array(),
+						"Finale - Seniors hommes" => array(),
+						"Finale - Vétérans hommes" => array(),
+						"Finale - Homme" => array()
+					);
+			
+					// fonction pour calculer les scores à partir des essais d'un grimpeur
+					function quantifierScoreB($classement, $es) {
+						global $zone;
+						global $top;
+						$x = 0;
+						foreach ($es as $e) {
+							$v = $e->Voie;
+							$z = $zone[$classement][$v];
+							$t = $top[$classement][$v];
+							if (is_null($e->Réussite))
+								$x += 2000 / (2 * $t);
+						}
+						return $x;
+					}
+			
+					// récupérer les infos depuis la DB pour les essais en bloc
+					$query = "SELECT * FROM `Essais` JOIN `Tournois_Voies` ON `Essais`.`Tournoi` = 8 AND `Tournois_Voies`.`Voie` = `Essais`.`Voie` AND `Tournois_Voies`.`Type` = 'Bloc' JOIN `Voies` ON `Voies`.`Id` = `Essais`.`Voie` JOIN `Tournois_Utilisateurs` ON `Tournois_Utilisateurs`.`Utilisateur` = `Essais`.`Utilisateur` AND `Tournois_Utilisateurs`.`Tournoi` = 8 AND `Tournois_Utilisateurs`.`Type` = 'Grimpeur' JOIN `Utilisateurs` ON `Utilisateurs`.`Id` = `Essais`.`Utilisateur`";
+					$result = $dbh->query($query);
+					// mettre les données dans les bons tableaux
+					while ($e = $result->fetchObject()) {
+						$u = $e->Utilisateur;
+						$v = $e->Voie;
+						$nomGrimpeur[$u] = $e->Prénom." ".$e->Nom;
+						$armeGrimpeur[$u] = $e->Equipe;
+						$c = $e->Catégorie;
+						$classements = array($e->Phase." - ".$e->Catégorie, $e->Phase." - ".$e->Genre);
+						foreach ($classements as $classement) if (array_key_exists($classement, $scoreB)) {
+							if (is_null($e->Réussite))
+								$top[$classement][$v] = $top[$classement][$v] + 1;
+							else
+								$zone[$classement][$v] = $zone[$classement][$v] + 1;
+							if (!array_key_exists($u, $scoreB[$classement]))
+								$scoreB[$classement][$u] = array();
+							array_push($scoreB[$classement][$u], $e);
+						}
+					}
+					// calculer les scores à partir des essais
+					foreach ($scoreB as $classement => &$s) {
+						$s = array_map(
+							function ($es) use ($classement) {return quantifierScoreB($classement, $es);},
+							$s
+						);
+					}
+			
+			
+			//Vitesse
+					if (!isset($_REQUEST['Type']) or $_REQUEST['Type'] == 'Vitesse') {
+						$query = "SELECT `Voie` AS `Id`, `Nb_Essais_Evalués` FROM `Tournois_Voies` WHERE `Tournoi` = ".$Tournoi->Id." AND `Type` = 'Vitesse'";
+						$result = $dbh->query($query);
+						$Score_Vitesse = [];
+						while($Voie = $result->fetchObject()) {
+							$query = "SELECT `Essais`.`Utilisateur` AS `Id`,
+									MIN(TIME_TO_SEC(`Chrono`)) AS `Secondes`,
+									COUNT(*) AS `Nb_Essais`,
+									`Tournois_Utilisateurs`.`Catégorie`,
+									`Tournois_Voies`.`Phase`
+								FROM `Essais`
+								LEFT OUTER JOIN `Tournois_Voies_Zones`
+									ON `Tournois_Voies_Zones`.`Tournoi` = ".$Tournoi->Id."
+										AND `Tournois_Voies_Zones`.`Voie` = ".$Voie->Id."
+										AND `Tournois_Voies_Zones`.`Id` = `Essais`.`Zones`
+								LEFT OUTER JOIN `Tournois_Utilisateurs`
+									ON `Tournois_Utilisateurs`.`Tournoi` = ".$Tournoi->Id."
+										AND `Tournois_Utilisateurs`.`Utilisateur` = `Essais`.`Utilisateur`
+								LEFT OUTER JOIN `Tournois_Voies`
+									ON `Tournois_Voies`.`Tournoi` = ".$Tournoi->Id."
+										AND `Tournois_Voies`.`Voie` = `Essais`.`Voie`
+								WHERE `Essais`.`Tournoi` = ".$Tournoi->Id."
+									AND `Essais`.`Voie` = ".$Voie->Id."
+									AND `Evalué` IS NOT NULL
+									AND `Réussite` IS NULL";
+							if ($Voie->Nb_Essais_Evalués != null) {
+								$query .= " AND (SELECT COUNT(*) FROM `Essais` AS `E` WHERE `E`.`Tournoi` = ".$Tournoi->Id." AND `E`.`Voie` = ".$Voie->Id." AND `Evalué` IS NOT NULL AND `E`.`Utilisateur` = `Essais`.`Utilisateur` AND `E`.`Date` < `Essais`.`Date`) < ".$Voie->Nb_Essais_Evalués;
+							}
+							$query .= " GROUP BY `Essais`.`Utilisateur`";
+							$result1 = $dbh->query($query);
+							while($Grimpeur = $result1->fetchObject()) {
+								if ($Grimpeur->Phase == null) {
+									$Grimpeur->Phase = '';
+								}
+								foreach (explode(',',$Grimpeur->Catégorie != null ? $Grimpeur->Catégorie : '') as $catégorie) {
+									$Score_Vitesse[$Grimpeur->Phase][$catégorie][$Grimpeur->Id]['Grimpeur'] = $Grimpeur->Id;
+									if ($Score_Vitesse[$Grimpeur->Phase][$catégorie][$Grimpeur->Id]['Temps'] > 0) {
+										$Score_Vitesse[$Grimpeur->Phase][$catégorie][$Grimpeur->Id]['Temps'] = min($Grimpeur->Secondes,$Score_Vitesse[$Grimpeur->Phase][$catégorie][$Grimpeur->Id]['Temps']);
+									} else {
+										$Score_Vitesse[$Grimpeur->Phase][$catégorie][$Grimpeur->Id]['Temps'] = $Grimpeur->Secondes;
+									}
+									$Score_Vitesse[$Grimpeur->Phase][$catégorie][$Grimpeur->Id]['Nb_Essais'] += $Grimpeur->Nb_Essais;
+								}
+							}
+						}
+						foreach ($Score_Vitesse as $Phase => $Catégories) {
+							foreach ($Catégories as $Catégorie => $Tableau) {
+								array_multisort(array_column($Tableau, 'Temps'),SORT_ASC,SORT_NUMERIC,array_column($Tableau, 'Nb_Essais'),SORT_ASC,SORT_NUMERIC ,$Tableau);
+								echo '<table style="min-width: unset"><thead><tr><th colspan="3">Classement Vitesse';
+								if ($Phase != '') {
+									echo '<br/>'.$Phase;
+								}if ($Catégorie != '') {
+									echo '<br/>'.$Catégorie;
+								}
+								echo '</th></tr></thead><tbody>';
+								$Code = '';
+								foreach ($Tableau as $i => $Infos) {
+									$query = "SELECT `Utilisateurs`.`Id`, CONCAT_WS(' ',`Utilisateurs`.`Prénom`,`Utilisateurs`.`Nom`) AS `Nom`, `Utilisateurs`.`Genre`, `Tournois_Utilisateurs`.`Dossard`, `Tournois_Utilisateurs`.`Equipe` FROM `Tournois_Utilisateurs` LEFT OUTER JOIN  `Utilisateurs` ON  `Utilisateurs`.`Id` = `Tournois_Utilisateurs`.`Utilisateur` WHERE `Tournoi` = :Tournoi AND `Tournois_Utilisateurs`.`Utilisateur` = :Grimpeur";
+									$result = $dbh->prepare($query);
+									$result->execute(['Tournoi' => $Tournoi->Id, 'Grimpeur' => $Infos['Grimpeur']]);
+									$Grimpeur = $result->fetchObject();
+									$Code .= '<tr onclick="window.location.href = \'Tournois/Fiche%20individuelle?Grimpeur='.$Grimpeur->Id.'\';" style="cursor: pointer">';
+									if ($i > 0 and $Tableau[$i-1]['Temps'] == $Infos['Temps'] and $Tableau[$i-1]['Nb_Essais'] == $Infos['Nb_Essais']) {
+										$Code .= '<td>'.$Tableau[$i-1]['Rang'].'</td>';
+										$Tableau[$i]['Rang'] = $Tableau[$i-1]['Rang'];
+									} else {
+										$Code .= '<td>'.strval($i+1).'</td>';
+										$Tableau[$i]['Rang'] = $i+1;
+									}
+									$Code .= '<td>'.$Grimpeur->Dossard.' - '.$Grimpeur->Nom;
+									$Code .= '<br>'.$Grimpeur->Genre;
+									if ($Grimpeur->Equipe != null) {
+										$Code .= ' ('.$Grimpeur->Equipe.')';
+									}
+									$Code .= '</td>';
+									$Infos['Temps'] = str_replace(',','.',$Infos['Temps']);
+									$Code .= '<td>'.date_create_from_format('U.u',sprintf("%0.3F",$Infos['Temps']))->format('i:s.v').'<br>('.$Infos['Nb_Essais'].' essais)</td>';
+									$Code .= '</tr>';
+									$Equipe['Vitesse'][$Grimpeur->Equipe] += $Infos['Temps'];
+								}
+								/*asort($Equipe['Vitesse']);
+								$count = 1;
+								foreach ($Equipe['Vitesse'] as $Eq => $Secondes) {
+									echo '<tr>';
+									echo '<td>'.$count.'</td>';
+									echo '<td>'.$Eq.'</td>';
+									echo '<td>'.date_create_from_format('U.u',sprintf("%0.3F",$Secondes))->format('H:i:s.v').'</td>';
+									echo '</tr>';
+									$count++;
+								}*/
+								echo $Code;
+								echo '</tbody></table>';
+							}
+						}
+					}
+			
+			// ================================================================================
+			// === CALCUL DU CLASSEMENT ET AFFICHAGE ==========================================
+			// ================================================================================
+			
+					$rating1 = NULL;
+					$rating2 = NULL;
+					$rating3 = NULL;
+			
+					// définit si une performance est meilleure qu'une autre pour l'ordre lex sur (rating1, rating2, rating3)
+					function ltRank($u, $v) {
+						global $rating1;
+						global $rating2;
+						global $rating3;
+						if ($rating1[$u] != $rating1[$v])
+							return $rating1[$v] - $rating1[$u];
+						else if (!is_null($rating2) && $rating2[$u] != $rating2[$v])
+							return $rating2[$v] - $rating2[$u];
+						else if (!is_null($rating3) && $rating3[$u] > $rating3[$v])
+							return $rating3[$v] - $rating3[$u];
+						else
+							return 0;
+					}
+			
+					// map rang => grimpeur en fonction du rating donné par rating1 puis rating2 si égalité puis rating3 si égalité
+					function ranking() {
+						global $rating1;
+						global $rating2;
+						global $rating3;
+						$rank = array();
+						$cnt = 0;
+						foreach ($rating1 as $u => $s) {
+							$rank[$cnt] = $u;
+							$cnt++;
+						}
+						usort($rank, 'ltRank');
+						$rk = 0;
+						$last = NULL;
+						foreach ($rank as $cnt => &$u) {
+							if ($cnt == 0 || ltRank($last, $u) < 0)
+								$rk = $cnt + 1;
+							$last = $u;
+							$u = array("user" => $u, "rank" => $rk);
+						}
+						return $rank;
+					}
+			
+					// phase précédente
+					$previousRating = array(
+						"Qualification - Seniors femmes" => NULL,
+						"Qualification - Seniors hommes" => NULL,
+						"Qualification - Vétérans hommes" => NULL,
+						"Qualification - Homme" => NULL,
+						"Demi-finale - Seniors femmes" => "Qualification - Seniors femmes",
+						"Demi-finale - Seniors hommes" => "Qualification - Seniors hommes",
+						"Demi-finale - Vétérans hommes" => "Qualification - Vétérans hommes",
+						"Demi-finale - Homme" => "Qualification - Homme",
+						"Finale - Seniors femmes" => "Demi-finale - Seniors femmes",
+						"Finale - Seniors hommes" => "Demi-finale - Seniors hommes",
+						"Finale - Vétérans hommes" => "Demi-finale - Vétérans hommes",
+						"Finale - Homme" => "Demi-finale - Homme"
+					);
+			
+					// transforme un score en performance affichable
+					function performance($type, $x) {
+						global $MAX_PRISES;
+						if ($type == "Difficulté") {
+							$u = 999 - $x % 1000; $x = intdiv($x, 1000);
+							$s = 59 - $x % 60; $x = intdiv($x, 60);
+							$i = 59 - $x % 60; $x = intdiv($x, 60);
+							$p = $x % $MAX_PRISES; $x = intdiv($x, $MAX_PRISES);
+							$v = $x;
+							$p = $p == $MAX_PRISES - 1? "TOP" : $p / 10;
+							if ($v == 0) return "6a, prise : ".$p.", temps : ".$i."min ".$s."s ".$u."ms";
+							else if ($v == 1) return "6b, prise : ".$p.", temps : ".$i."min ".$s."s ".$u."ms";
+							else if ($v == 2) return "6c, prise : ".$p.", temps : ".$i."min ".$s."s ".$u."ms";
+							else if ($v == 3) return "7a, prise : ".$p.", temps : ".$i."min ".$s."s ".$u."ms";
+							else if ($v == 4) return "7b, prise : ".$p.", temps : ".$i."min ".$s."s ".$u."ms";
+							else return "prise : ".$p.", temps : ".$i."min ".$s."s ".$u."ms";
+						}
+						else {
+							return intval($x);
+						}
+					}
+			
+					// affichage des classements en difficulté
+					$scores = array("Difficulté" => $scoreD, "Bloc" => $scoreB);
+					foreach ($scores as $type => &$score) {
+						foreach ($score as $classement => &$s) {
+							$pClassement = $previousRating[$classement];
+							$gClassement = is_null($pClassement)? NULL : $previousRating[$pClassement];
+							$rating1 = $score[$classement];
+							$rating2 = is_null($pClassement)? NULL : $score[$pClassement];
+							$rating3 = is_null($gClassement)? NULL : $score[$gClassement];
+							echo '<div style="display: flex; justify-content: space-around; flex-wrap: wrap; font-size:0.75em">';
+							echo '<table style="min-width: unset"><thead><tr><th colspan="4">'.$type.' - '.$classement.'</th></tr></thead><tbody>';
+							echo '<tr>';
+							echo '<td><b>RANG</b></td>';
+							echo '<td><b>COMPÉTITEUR</b></td>';
+							echo '<td><b>ARMÉE</b></td>';
+							echo '<td><b>PERFORMANCE</b></td>';
+							foreach (ranking() as $grimpeur) {
+								$u = $grimpeur["user"];
+								echo '<tr>';
+								echo '<td>'.$grimpeur["rank"].'</td>';
+								echo '<td>'.$nomGrimpeur[$u].'</td>';
+								echo '<td>'.$armeGrimpeur[$u].'</td>';
+								echo '<td>'.performance($type, $s[$u]).'</td>';
+								echo '</tr>';
+							}
+							echo '</tbody></table>';
+							echo '</div>';
+						}
+					}
+				break;
 }
 
 echo '<p class="noPrint"><a href="Tournois/Resultats?Actualiser=5'.(isset($_REQUEST['Type']) ? '&Type='.$_REQUEST['Type'] : '').'">Actualiser ces résultats toutes les 5 secondes</a></p>';
