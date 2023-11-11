@@ -101,6 +101,7 @@ if ($result->rowCount() > 0) {
 							echo '<p><label><input type="checkbox" name="Réussite" id="Réussite" checked onchange="afficher_other();">Voie terminée</label></p>';
 						}
 						echo '</div>';
+						
 						if ($Voie->Evaluation != 'Top') {
 							echo '<div id="Nb_Dégaines" style="display: none;">';
 							if ($Voie->Evaluation == 'Prise') {
@@ -109,6 +110,11 @@ if ($result->rowCount() > 0) {
 								echo '<h4>Dernière dégaine validée</h4>';
 							}
 							echo '<p><input type="number" name="Nb_Dégaines" value="0" step="0.1"></p>';
+
+							// Si la dernière prise est tenue ou non
+							if ($Voie->Evaluation == 'Prise') {
+								echo '<p><label><input type="checkbox" name="Prise_tenue" id="Prise_tenue">Bonus</label></p>';
+							}
 							echo '</div>';
 						}
 						if ($Voie->Chronométrée === '1') {
@@ -222,7 +228,7 @@ if ($result->rowCount() > 0) {
 							$result = $dbh->prepare($query);
 							$result->execute(['Tournoi' => $Tournoi->Id, 'Grimpeur' => $_REQUEST['Grimpeur']]);
 							if ($result->rowCount() > 0) {
-								//Réussite ou échèque
+								//Réussite ou échec
 								$Grimpeur = $result->fetchObject();
 								if (isset($_REQUEST['Réussite']) and $_REQUEST['Réussite'] == 'on') {
 									$Réussite = null;
@@ -230,6 +236,11 @@ if ($result->rowCount() > 0) {
 								} elseif (isset($_REQUEST['Réussite']) and $_REQUEST['Réussite'] == 'off') {
 									if ($Voie->Evaluation != 'Top') {
 										$Réussite = $_REQUEST['Nb_Dégaines'];
+										
+										// On ajoute 0.5 points si la prise à été tenue
+										if (isset($_REQUEST['Prise_tenue'])) {
+											$Réussite += 0.5;
+										}
 									} else {
 										$Réussite = 0;
 									}
@@ -241,6 +252,11 @@ if ($result->rowCount() > 0) {
 									} elseif (isset($_REQUEST['Progression']) and $_REQUEST['Progression'] == 'chute') {
 										if ($Voie->Evaluation != 'Top') {
 											$Réussite = $_REQUEST['Nb_Dégaines'];
+
+											// On ajoute 0.5 points si la prise à été tenue
+											if (isset($_REQUEST['Prise_tenue'])) {
+												$Réussite += 0.5;
+											}
 										} else {
 											$Réussite = 0;
 										}
@@ -248,6 +264,11 @@ if ($result->rowCount() > 0) {
 									} else {
 										if ($Voie->Evaluation != 'Top') {
 											$Réussite = $_REQUEST['Nb_Dégaines'];
+
+											// On ajoute 0.5 points si la prise à été tenue
+											if (isset($_REQUEST['Prise_tenue'])) {
+												$Réussite += 0.5;
+											}
 										} else {
 											$Réussite = 0;
 										}
